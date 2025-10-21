@@ -5,7 +5,7 @@ Cliente de pruebas para API REST de Usuarios.
 Este módulo proporciona una interfaz de línea de comandos para interactuar
 con la API REST de usuarios, permitiendo realizar operaciones CRUD completas.
 
-Autor: Tu nombre
+Autor: agustinEDev
 Fecha: 21 de octubre de 2025
 """
 
