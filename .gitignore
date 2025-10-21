@@ -40,8 +40,12 @@ Thumbs.db
 # Logs
 *.log
 
-# Ficheros de base de datos
+# Archivos de base de datos
 *.sql
+database/*.sql
+*.db
+*.sqlite
+*.sqlite3
 
 # Ficheros de caché
 __pycache__/
