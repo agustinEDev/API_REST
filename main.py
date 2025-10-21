@@ -1,12 +1,28 @@
 #!/usr/bin/env python3
 """
-Cliente de pruebas para API REST de Usuarios.
+Cliente interactivo para API REST de Usuarios.
 
-Este módulo proporciona una interfaz de línea de comandos para interactuar
-con la API REST de usuarios, permitiendo realizar operaciones CRUD completas.
+Este módulo proporciona una interfaz de línea de comandos avanzada para interactuar
+con la API REST de usuarios, incluyendo:
+
+- Operaciones CRUD completas (Crear, Leer, Actualizar, Eliminar)
+- Navegación paginada de usuarios uno por uno
+- Validación robusta de entrada de datos
+- Manejo de errores con mensajes informativos
+- Interfaz visual intuitiva con emojis y controles
+
+Funcionalidades principales:
+1. Listar todos los usuarios (formato JSON)
+2. Navegación paginada interactiva (NEW!)
+3. Buscar usuario por ID
+4. Crear nuevos usuarios con validación
+5. Actualizar usuarios (completa y parcial)
+6. Eliminar usuarios con confirmación
+7. Controles de navegación: Enter, q/quit, Ctrl+C
 
 Autor: agustinEDev
 Fecha: 21 de octubre de 2025
+Versión: 2.0 - Con navegación paginada
 """
 
 import json
@@ -107,12 +123,13 @@ class MenuPeticiones:
         self.api_client = APIClient()
         self.opciones = {
             '1': ('Obtener todos los usuarios', self.obtener_todos_usuarios),
-            '2': ('Obtener usuario por ID', self.obtener_usuario_por_id),
-            '3': ('Crear nuevo usuario', self.crear_nuevo_usuario),
-            '4': ('Actualizar usuario completo', self.actualizar_usuario_completo),
-            '5': ('Actualizar usuario parcialmente', self.actualizar_usuario_parcialmente),
-            '6': ('Eliminar usuario', self.eliminar_usuario),
-            '7': ('Salir', self._salir)
+            '2': ('Obtener usuarios paginados', self.obtener_usuarios_paginados),
+            '3': ('Obtener usuario por ID', self.obtener_usuario_por_id),
+            '4': ('Crear nuevo usuario', self.crear_nuevo_usuario),
+            '5': ('Actualizar usuario completo', self.actualizar_usuario_completo),
+            '6': ('Actualizar usuario parcialmente', self.actualizar_usuario_parcialmente),
+            '7': ('Eliminar usuario', self.eliminar_usuario),
+            '8': ('Salir', self._salir)
         }
 
     def mostrar_menu(self) -> None:
@@ -142,7 +159,7 @@ class MenuPeticiones:
             
             try:
                 resultado = funcion()
-                if opcion == '7':  # Opción salir
+                if opcion == '8':  # Opción salir
                     return False
                     
             except (ConnectionError, RequestException, Timeout) as e:
@@ -198,6 +215,104 @@ class MenuPeticiones:
         """Obtiene y muestra todos los usuarios."""
         respuesta = self.api_client.get_all_users()
         self._imprimir_respuesta(respuesta)
+
+    def obtener_usuarios_paginados(self) -> None:
+        """Obtiene y muestra usuarios uno por uno con paginación manual."""
+        print("\n📖 Navegación paginada de usuarios")
+        print("Controles: [Enter] = Siguiente | [q] = Volver al menú | [Ctrl+C] = Cancelar")
+        print("-" * 50)
+        
+        try:
+            respuesta = self.api_client.get_all_users()
+            
+            # Verificar si hay respuesta
+            if not respuesta:
+                print("❌ No se recibió respuesta de la API.")
+                return
+            
+            # La API devuelve los usuarios directamente como una lista
+            if isinstance(respuesta, list):
+                usuarios = respuesta
+            elif isinstance(respuesta, dict):
+                # Por si en el futuro cambia el formato
+                usuarios = respuesta.get('usuarios') or respuesta.get('data') or respuesta.get('users')
+                if usuarios is None:
+                    print("❌ No se encontró la lista de usuarios en la respuesta del diccionario.")
+                    return
+            else:
+                print("❌ Formato de respuesta no reconocido.")
+                return
+            
+            if not usuarios:
+                print("📝 No hay usuarios registrados.")
+                return
+            
+            total_usuarios = len(usuarios)
+            print(f"📊 Total de usuarios encontrados: {total_usuarios}")
+            input("\n⏸️  Presione Enter para comenzar...")
+            
+            # Mostrar usuarios uno por uno
+            for i, usuario in enumerate(usuarios, 1):
+                # Limpiar pantalla (simulado con líneas)
+                print("\n" * 3)
+                print("=" * 60)
+                print(f"👤 USUARIO {i} de {total_usuarios}")
+                print("=" * 60)
+                
+                # Mostrar información del usuario de forma legible
+                print(f"🆔 ID: {usuario.get('id', 'N/A')}")
+                print(f"👤 Nombre: {usuario.get('nombre', 'N/A')} {usuario.get('apellido', 'N/A')}")
+                print(f"📧 Email: {usuario.get('email', 'N/A')}")
+                print(f"🎂 Edad: {usuario.get('edad', 'N/A')} años")
+                print(f"📱 Teléfono: {usuario.get('telefono', 'N/A')}")
+                print(f"🏠 Ciudad: {usuario.get('ciudad', 'N/A')}")
+                print(f"💼 Profesión: {usuario.get('profesion', 'N/A')}")
+                print(f"💰 Salario: ${usuario.get('salario', 'N/A')}")
+                print(f"⚧ Género: {usuario.get('genero', 'N/A')}")
+                print(f"✅ Activo: {'Sí' if usuario.get('activo') else 'No'}")
+                print(f"📅 Registro: {usuario.get('fecha_registro', 'N/A')}")
+                print(f"🔄 Actualización: {usuario.get('fecha_actualizacion', 'N/A')}")
+                
+                print("-" * 60)
+                
+                # Mostrar controles mejorados
+                if i < total_usuarios:
+                    print(f"🎯 Controles:")
+                    print(f"   [Enter] = Siguiente usuario ({i+1}/{total_usuarios})")
+                    print(f"   [q + Enter] = Volver al menú")
+                    print(f"   [Ctrl+C] = Cancelar")
+                else:
+                    print("🎯 [Enter] = Volver al menú (último usuario)")
+                
+                # Esperar entrada del usuario
+                try:
+                    entrada = input("\n⌨️  Presione Enter para continuar (o 'q' para salir): ").strip().lower()
+                    
+                    # Si escribe 'q', 'quit', 'salir', etc.
+                    if entrada in ['q', 'quit', 'salir', 'exit', 's']:
+                        print("\n🔙 Regresando al menú principal...")
+                        return
+                    
+                    # Si escribe 'help' o 'ayuda', mostrar ayuda
+                    if entrada in ['help', 'ayuda', 'h', '?']:
+                        print("\n📋 Ayuda:")
+                        print("   - Presiona solo Enter para avanzar")
+                        print("   - Escribe 'q' y Enter para salir")
+                        print("   - Presiona Ctrl+C para cancelar")
+                        input("\n⏸️  Presiona Enter para continuar...")
+                        continue
+                        
+                    # Si es el último usuario y presiona Enter, salir
+                    if i == total_usuarios:
+                        print("\n✅ Ha revisado todos los usuarios. Regresando al menú...")
+                        return
+                        
+                except KeyboardInterrupt:
+                    print("\n\n🔙 Operación cancelada por el usuario (Ctrl+C). Regresando al menú...")
+                    return
+            
+        except Exception as e:
+            print(f"❌ Error al obtener usuarios paginados: {e}")
 
     def obtener_usuario_por_id(self) -> None:
         """Obtiene y muestra un usuario por su ID."""

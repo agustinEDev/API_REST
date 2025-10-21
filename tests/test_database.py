@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""
+Pruebas unitarias para la conexión a la base de datos.
+
+Prueba las funcionalidades del módulo database.connection incluyendo:
+- Validación de configuración
+- Conexión a la base de datos
+- Verificación de tablas
+- Manejo de errores
+
+Autor: agustinEDev
+Fecha: 21 de octubre de 2025
+"""
+
+import unittest
+import sys
+import os
+from unittest.mock import patch, MagicMock
+
+# Añadir el directorio raíz al path para imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from database.connection import DatabaseConnection
+
+
+class TestDatabaseConnection(unittest.TestCase):
+    """Pruebas para la clase DatabaseConnection."""
+    
+    def setUp(self):
+        """Configuración inicial para cada prueba."""
+        self.db = DatabaseConnection()
+    
+    def tearDown(self):
+        """Limpieza después de cada prueba."""
+        pass
+    
+    @patch.dict(os.environ, {
+        'DB_HOST': 'localhost',
+        'DB_NAME': 'test_db',
+        'DB_USER': 'test_user',
+        'DB_PASSWORD': 'test_pass',
+        'DB_PORT': '5432'
+    })
+    def test_validar_configuracion_completa(self):
+        """Prueba validación con configuración completa."""
+        resultado = self.db.validar_configuracion()
+        self.assertTrue(resultado)
+    
+    @patch.dict(os.environ, {
+        'DB_HOST': 'localhost',
+        'DB_NAME': 'test_db',
+        # Falta DB_USER intencionalmente
+        'DB_PASSWORD': 'test_pass',
+        'DB_PORT': '5432'
+    }, clear=True)
+    def test_validar_configuracion_incompleta(self):
+        """Prueba validación con configuración incompleta."""
+        resultado = self.db.validar_configuracion()
+        self.assertFalse(resultado)
+    
+    @patch.dict(os.environ, {
+        'DB_HOST': 'localhost',
+        'DB_NAME': 'test_db',
+        'DB_USER': 'test_user',
+        'DB_PASSWORD': 'test_pass',
+        'DB_PORT': '5432'
+    })
+    def test_get_config_info(self):
+        """Prueba obtención de información de configuración."""
+        config = self.db.get_config_info()
+        
+        self.assertIsInstance(config, dict)
+        self.assertIn('host', config)
+        self.assertIn('database', config)
+        self.assertIn('user', config)
+        self.assertIn('port', config)
+        self.assertEqual(config['host'], 'localhost')
+        self.assertEqual(config['database'], 'test_db')
+        self.assertEqual(config['user'], 'test_user')
+        self.assertEqual(config['port'], 5432)
+    
+    @patch('psycopg2.connect')
+    @patch.dict(os.environ, {
+        'DB_HOST': 'localhost',
+        'DB_NAME': 'test_db',
+        'DB_USER': 'test_user',
+        'DB_PASSWORD': 'test_pass',
+        'DB_PORT': '5432'
+    })
+    def test_get_connection_exitoso(self, mock_connect):
+        """Prueba conexión exitosa a la base de datos."""
+        # Mock de la conexión
+        mock_conn = MagicMock()
+        mock_connect.return_value = mock_conn
+        
+        conexion = self.db.get_connection()
+        
+        self.assertIsNotNone(conexion)
+        mock_connect.assert_called_once()
+    
+    @patch('psycopg2.connect')
+    @patch.dict(os.environ, {
+        'DB_HOST': 'localhost',
+        'DB_NAME': 'test_db',
+        'DB_USER': 'test_user',
+        'DB_PASSWORD': 'test_pass',
+        'DB_PORT': '5432'
+    })
+    def test_get_connection_fallo(self, mock_connect):
+        """Prueba fallo en la conexión a la base de datos."""
+        # Mock que simula error de conexión
+        mock_connect.side_effect = Exception("Error de conexión")
+        
+        conexion = self.db.get_connection()
+        
+        self.assertIsNone(conexion)
+    
+    @patch('database.connection.DatabaseConnection.get_connection')
+    def test_verificar_tabla_existe_exitoso(self, mock_get_connection):
+        """Prueba verificación exitosa de existencia de tabla."""
+        # Mock de conexión y cursor
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchone.return_value = (1,)  # Tabla existe
+        mock_get_connection.return_value = mock_conn
+        
+        resultado = self.db.verificar_tabla_existe()
+        
+        self.assertTrue(resultado)
+        mock_cursor.execute.assert_called_once()
+        mock_conn.close.assert_called_once()
+    
+    @patch('database.connection.DatabaseConnection.get_connection')
+    def test_verificar_tabla_no_existe(self, mock_get_connection):
+        """Prueba verificación cuando la tabla no existe."""
+        # Mock de conexión sin tabla
+        mock_conn = MagicMock()
+        mock_cursor = MagicMock()
+        mock_conn.cursor.return_value = mock_cursor
+        mock_cursor.fetchone.return_value = None  # Tabla no existe
+        mock_get_connection.return_value = mock_conn
+        
+        resultado = self.db.verificar_tabla_existe()
+        
+        self.assertFalse(resultado)
+
+
+if __name__ == '__main__':
+    unittest.main()

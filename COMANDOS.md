@@ -125,6 +125,27 @@ python main.py
 python -v main.py
 ```
 
+### **Nuevas Funcionalidades del Cliente**
+```bash
+# Opción 1: Ver todos los usuarios (formato JSON)
+# Opción 2: Navegación paginada (usuario por usuario)
+# Opción 3: Obtener usuario específico por ID
+# Opción 4: Crear nuevo usuario
+# Opción 5: Actualizar usuario completo
+# Opción 6: Actualizar usuario parcial
+# Opción 7: Eliminar usuario
+# Opción 8: Salir
+```
+
+### **Controles de Navegación Paginada**
+```bash
+# Dentro de la opción 2 (usuarios paginados):
+Enter         # Siguiente usuario
+q + Enter     # Volver al menú principal  
+help + Enter  # Mostrar ayuda
+Ctrl+C        # Cancelar operación inmediatamente
+```
+
 ### **Curl para probar endpoints**
 ```bash
 # Obtener todos los usuarios
@@ -266,6 +287,7 @@ find . -name "*.pyc" -delete
 - [ ] `git pull` - Obtener últimos cambios
 - [ ] `python api.py` - Arrancar servidor
 - [ ] `python main.py` - Verificar que todo funciona
+- [ ] Probar opción 2 (navegación paginada) - Nueva funcionalidad
 
 ### **Antes de hacer commit:**
 - [ ] `Ctrl + C` - Parar servidor
@@ -282,4 +304,5 @@ find . -name "*.pyc" -delete
 ---
 
 **Fecha de creación:** 21 de octubre de 2025  
+**Última actualización:** 21 de octubre de 2025 - Agregada navegación paginada  
 **Proyecto:** API de Usuarios con PostgreSQL - Comandos de Referencia

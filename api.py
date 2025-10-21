@@ -1,5 +1,5 @@
 # api.py
-from flask import Flask
+from flask import Flask, jsonify
 import sys
 import os
 
@@ -14,6 +14,21 @@ app = Flask(__name__)
 # Inicializar controlador
 user_controller = UserController()
 
+# ===== VALIDADORES =====
+
+def validar_id_usuario(usuario_id):
+    """Valida que el ID de usuario sea válido."""
+    if usuario_id is None:
+        return False, "ID requerido"
+    
+    try:
+        id_int = int(usuario_id)
+        if id_int <= 0:
+            return False, "ID debe ser mayor a 0"
+        return True, id_int
+    except (ValueError, TypeError):
+        return False, "ID inválido"
+
 # ===== RUTAS (ENDPOINTS) =====
 
 # Endpoint de información del sistema
@@ -26,25 +41,41 @@ def inicio():
 def obtener_usuarios():
     return user_controller.obtener_todos()
 
-@app.route('/usuarios/<int:usuario_id>', methods=['GET'])
+@app.route('/usuarios/<usuario_id>', methods=['GET'])
 def obtener_usuario(usuario_id):
-    return user_controller.obtener_por_id(usuario_id)
+    valido, resultado = validar_id_usuario(usuario_id)
+    if not valido:
+        return jsonify({"exito": False, "error": resultado}), 400
+    return user_controller.obtener_por_id(resultado)
 
 @app.route('/usuarios', methods=['POST'])
 def crear_usuario():
     return user_controller.crear()
 
-@app.route('/usuarios/<int:usuario_id>', methods=['PUT'])
+@app.route('/usuarios/<usuario_id>', methods=['PUT'])
 def actualizar_usuario(usuario_id):
-    return user_controller.actualizar(usuario_id)
+    valido, resultado = validar_id_usuario(usuario_id)
+    if not valido:
+        return jsonify({"exito": False, "error": resultado}), 400
+    return user_controller.actualizar(resultado)
 
-@app.route('/usuarios/<int:usuario_id>', methods=['PATCH'])
+@app.route('/usuarios/<usuario_id>', methods=['PATCH'])
 def actualizar_parcial_usuario(usuario_id):
-    return user_controller.actualizar_parcial(usuario_id)
+    valido, resultado = validar_id_usuario(usuario_id)
+    if not valido:
+        return jsonify({"exito": False, "error": resultado}), 400
+    return user_controller.actualizar_parcial(resultado)
 
-@app.route('/usuarios/<int:usuario_id>', methods=['DELETE'])
+@app.route('/usuarios/<usuario_id>', methods=['DELETE'])
 def eliminar_usuario(usuario_id):
-    return user_controller.eliminar(usuario_id)
+    valido, resultado = validar_id_usuario(usuario_id)
+    if not valido:
+        return jsonify({"exito": False, "error": resultado}), 400
+    return user_controller.eliminar(resultado)
+
+@app.route('/usuarios/paginado', methods=['GET'])
+def obtener_usuarios_paginados():
+    return user_controller.obtener_paginados()
 
 # ===== CONFIGURACIÓN E INICIO =====
 
@@ -83,6 +114,15 @@ if __name__ == '__main__':
         print("   📁 models/user_model.py - Operaciones de base de datos")
         print("   📁 controllers/user_controller.py - Lógica de negocio")
         print("   📁 api.py - Rutas y configuración")
+        
+        # Agregar error handler para método no permitido
+        @app.errorhandler(405)
+        def metodo_no_permitido(error):
+            """Maneja errores de método no permitido."""
+            return jsonify({
+                "exito": False,
+                "error": "Método no permitido"
+            }), 405
         
         app.run(debug=True, port=8000)
     else:
