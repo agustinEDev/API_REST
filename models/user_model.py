@@ -329,3 +329,61 @@ class UserModel:
             if conn:
                 conn.close()
             raise Exception("Error al obtener información")
+    
+    def obtener_paginados(self, pagina, limite):
+        """Obtener usuarios con paginación"""
+        conn = self.db.obtener_conexion()
+        if not conn:
+            raise Exception("Error de conexión a la base de datos")
+        
+        try:
+            cursor = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            
+            # Calcular offset
+            offset = (pagina - 1) * limite
+            
+            # Obtener total de usuarios
+            cursor.execute('SELECT COUNT(*) FROM users')
+            total_usuarios = cursor.fetchone()[0]
+            
+            # Obtener usuarios con paginación
+            cursor.execute('''
+                SELECT id, nombre, apellido, email, edad, telefono, ciudad, 
+                       activo, fecha_registro, fecha_actualizacion, genero, 
+                       profesion, salario
+                FROM users 
+                ORDER BY id
+                LIMIT %s OFFSET %s
+            ''', (limite, offset))
+            
+            usuarios = [dict(row) for row in cursor.fetchall()]
+            
+            # Convertir timestamps a string para JSON
+            for usuario in usuarios:
+                if usuario['fecha_registro']:
+                    usuario['fecha_registro'] = usuario['fecha_registro'].isoformat()
+                if usuario['fecha_actualizacion']:
+                    usuario['fecha_actualizacion'] = usuario['fecha_actualizacion'].isoformat()
+            
+            conn.close()
+            
+            # Calcular información de paginación
+            total_paginas = (total_usuarios + limite - 1) // limite  # Redondeo hacia arriba
+            
+            return {
+                "usuarios": usuarios,
+                "paginacion": {
+                    "pagina_actual": pagina,
+                    "limite": limite,
+                    "total_usuarios": total_usuarios,
+                    "total_paginas": total_paginas,
+                    "tiene_siguiente": pagina < total_paginas,
+                    "tiene_anterior": pagina > 1
+                }
+            }
+            
+        except psycopg2.Error as e:
+            print(f"❌ Error obteniendo usuarios paginados: {e}")
+            if conn:
+                conn.close()
+            raise Exception("Error al obtener usuarios paginados")
