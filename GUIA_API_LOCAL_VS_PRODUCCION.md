@@ -5,7 +5,7 @@
 Cuando desarrollas en tu equipo local, todo está en el mismo lugar:
 - Tu código de la API
 - Tu base de datos PostgreSQL
-- Tu script cliente (`peticiones.py`)
+- Tu script cliente (`main.py`)
 
 Esto puede crear la **falsa impresión** de que no necesitas una API, pero la realidad es muy diferente en producción.
 
@@ -15,14 +15,14 @@ Esto puede crear la **falsa impresión** de que no necesitas una API, pero la re
 
 ```
 🖥️ TU EQUIPO
-├── app.py (API Flask) → localhost:8000
+├── api.py (API Flask) → localhost:8000
 ├── PostgreSQL local → localhost:5432
-└── peticiones.py (cliente) → requests a localhost:8000
+└── main.py (cliente) → requests a localhost:8000
 ```
 
 **Flujo local:**
 ```
-peticiones.py → localhost:8000/usuarios → PostgreSQL local
+main.py → localhost:8000/usuarios → PostgreSQL local
 ```
 
 ---
@@ -33,12 +33,12 @@ peticiones.py → localhost:8000/usuarios → PostgreSQL local
 
 ```
 🖥️ TU EQUIPO LOCAL (Casa/Oficina)
-├── peticiones.py (cliente)
+├── main.py (cliente)
 ├── navegador web
 └── app móvil
 
 🌐 SERVIDOR EN LA NUBE (AWS, Google Cloud, Heroku)
-├── app.py (API Flask)
+├── api.py (API Flask)
 ├── controllers/user_controller.py
 ├── models/user_model.py
 └── database/connection.py
@@ -62,7 +62,7 @@ Cliente → Internet → DNS → Load Balancer → Servidor en la nube
 
 #### 3. **Servidor procesa (ejecutándose en AWS/Heroku):**
 ```python
-# app.py ejecutándose en servidor remoto
+# api.py ejecutándose en servidor remoto
 @app.route('/usuarios', methods=['GET'])
 def obtener_usuarios():
     return user_controller.obtener_todos()  # En el servidor
@@ -109,9 +109,9 @@ BD remota → Servidor remoto → Internet → Cliente (tu equipo)
          
 🌐 API REST EN LA NUBE
 ├── 🏭 Load Balancer (distribuye carga)
-├── 🖥️ Servidor 1: app.py (Irlanda - AWS)
-├── 🖥️ Servidor 2: app.py (Virginia - AWS)
-├── 🖥️ Servidor 3: app.py (Singapur - AWS)
+├── 🖥️ Servidor 1: api.py (Irlanda - AWS)
+├── 🖥️ Servidor 2: api.py (Virginia - AWS)
+├── 🖥️ Servidor 3: api.py (Singapur - AWS)
 ├── 📡 CDN (Content Delivery Network)
 └── 🛡️ Firewall y seguridad
          ↓ (SQL queries via secure network)
@@ -259,7 +259,7 @@ requests.post("https://api.banco.com/transferencias", json={
 
 ## 🎓 **Conclusión**
 
-La **arquitectura modular** que has creado (app.py → controllers → models → database) es exactamente la que se usa en producción real. La única diferencia es que:
+La **arquitectura modular** que has creado (api.py → controllers → models → database) es exactamente la que se usa en producción real. La única diferencia es que:
 
 - **Ahora**: Todo en localhost
 - **Producción**: Cada componente puede estar en servidores diferentes, países diferentes, con miles de usuarios simultáneos

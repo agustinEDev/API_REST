@@ -1,4 +1,4 @@
-# app.py
+# api.py
 from flask import Flask
 import sys
 import os
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         print("   📁 database/connection.py - Gestión de conexiones")
         print("   📁 models/user_model.py - Operaciones de base de datos")
         print("   📁 controllers/user_controller.py - Lógica de negocio")
-        print("   📁 app.py - Rutas y configuración")
+        print("   📁 api.py - Rutas y configuración")
         
         app.run(debug=True, port=8000)
     else:

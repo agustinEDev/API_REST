@@ -5,14 +5,14 @@
 ### **Arrancar el servidor**
 ```bash
 # Método normal (primer plano)
-python app.py
+python api.py
 
 # Método background (sigue corriendo aunque cierres terminal)
-python app.py &
+python api.py &
 
 # Con modo debug (reinicia automáticamente en cambios)
 export FLASK_ENV=development
-python app.py
+python api.py
 ```
 
 ### **Parar el servidor**
@@ -25,7 +25,7 @@ lsof -i :8000                    # Ver qué usa el puerto 8000
 kill -9 [PID]                    # Matar proceso específico
 
 # Método 3: Matar proceso específico de la app
-pkill -f "python app.py"         # Mata específicamente app.py
+pkill -f "python api.py"         # Mata específicamente api.py
 ```
 
 ### **Verificar estado del servidor**
@@ -43,10 +43,10 @@ curl http://localhost:8000/
 ### **Comandos rápidos**
 ```bash
 # Parar y arrancar en una línea
-pkill -f "python app.py" && python app.py
+pkill -f "python api.py" && python api.py
 
 # Verificar que arrancó correctamente
-python app.py & sleep 2 && curl http://localhost:8000/
+python api.py & sleep 2 && curl http://localhost:8000/
 ```
 
 ---
@@ -116,13 +116,13 @@ TRUNCATE TABLE users;
 
 ## 🧪 Pruebas y Testing
 
-### **Ejecutar script de pruebas**
+### **Ejecutar cliente de pruebas**
 ```bash
-# Ejecutar peticiones de prueba
-python peticiones.py
+# Ejecutar cliente de pruebas
+python main.py
 
 # Ejecutar con salida detallada
-python -v peticiones.py
+python -v main.py
 ```
 
 ### **Curl para probar endpoints**
@@ -228,14 +228,14 @@ grep -r "texto" .               # Buscar texto en archivos
 # Error: "Address already in use"
 lsof -i :8000                   # Ver qué usa el puerto
 kill -9 [PID]                  # Matar el proceso
-python app.py                  # Reintentar
+python api.py                  # Reintentar
 ```
 
 ### **Problemas de imports**
 ```bash
 # Si hay problemas con imports relativos
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-python app.py
+python api.py
 ```
 
 ### **Base de datos no conecta**
@@ -264,8 +264,8 @@ find . -name "*.pyc" -delete
 ### **Antes de empezar a trabajar:**
 - [ ] `source .venv/bin/activate` - Activar entorno virtual
 - [ ] `git pull` - Obtener últimos cambios
-- [ ] `python app.py` - Arrancar servidor
-- [ ] `python peticiones.py` - Verificar que todo funciona
+- [ ] `python api.py` - Arrancar servidor
+- [ ] `python main.py` - Verificar que todo funciona
 
 ### **Antes de hacer commit:**
 - [ ] `Ctrl + C` - Parar servidor
