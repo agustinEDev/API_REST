@@ -234,10 +234,14 @@ class MenuPeticiones:
             if isinstance(respuesta, list):
                 usuarios = respuesta
             elif isinstance(respuesta, dict):
-                # Por si en el futuro cambia el formato
-                usuarios = respuesta.get('usuarios') or respuesta.get('data') or respuesta.get('users')
+                # Buscar en todas las posibles claves donde podrían estar los usuarios
+                usuarios = (respuesta.get('datos') or 
+                           respuesta.get('usuarios') or 
+                           respuesta.get('data') or 
+                           respuesta.get('users'))
                 if usuarios is None:
                     print("❌ No se encontró la lista de usuarios en la respuesta del diccionario.")
+                    print(f"🔍 Claves disponibles: {list(respuesta.keys())}")
                     return
             else:
                 print("❌ Formato de respuesta no reconocido.")

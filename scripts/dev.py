@@ -209,7 +209,7 @@ class DevScript:
         return success
     
     def run_tests(self):
-        """Ejecuta las pruebas unitarias."""
+        """Ejecuta las pruebas unitarias con detección automática del runner más apropiado."""
         print("\n🧪 Ejecutando pruebas unitarias...")
         
         # Verificar que existe el directorio de tests
@@ -218,19 +218,54 @@ class DevScript:
             print("❌ Directorio 'tests' no encontrado")
             return False
         
-        # Ejecutar el script de pruebas personalizado
-        test_runner = tests_dir / "run_tests.py"
-        if test_runner.exists():
-            success = self._run_command(
-                f"{self.python_cmd} tests/run_tests.py",
-                "Ejecutando suite completa de pruebas"
-            )
-        else:
-            # Fallback a unittest discovery
-            success = self._run_command(
-                f"{self.python_cmd} -m unittest discover -s tests -p 'test_*.py' -v",
-                "Ejecutando pruebas con unittest discovery"
-            )
+        # Estrategia de detección automática del runner de tests
+        runners = [
+            # 1. Test runner principal optimizado (recomendado)
+            {
+                "path": self.project_root / "test_runner.py",
+                "command": f"{self.python_cmd} test_runner.py",
+                "description": "Ejecutando análisis completo de pruebas (métricas precisas con tests skipped)",
+                "priority": 1
+            },
+            # 2. Runner personalizado en directorio tests/
+            {
+                "path": tests_dir / "run_tests.py",
+                "command": f"{self.python_cmd} tests/run_tests.py",
+                "description": "Ejecutando suite personalizada de pruebas",
+                "priority": 2
+            },
+            # 3. Unittest discovery estándar (fallback)
+            {
+                "path": None,  # Siempre disponible
+                "command": f"{self.python_cmd} -m unittest discover -s tests -p 'test_*.py' -v",
+                "description": "Ejecutando pruebas con unittest discovery (métricas estándar)",
+                "priority": 3
+            }
+        ]
+        
+        # Buscar el runner más apropiado
+        selected_runner = None
+        for runner in runners:
+            if runner["path"] is None or runner["path"].exists():
+                selected_runner = runner
+                break
+        
+        if not selected_runner:
+            print("❌ No se encontró ningún método para ejecutar las pruebas")
+            return False
+        
+        # Mostrar información del runner seleccionado
+        priority_labels = {1: "🏆 ÓPTIMO", 2: "✅ BUENO", 3: "⚠️  BÁSICO"}
+        print(f"{priority_labels.get(selected_runner['priority'], '📊')} Runner detectado: Prioridad {selected_runner['priority']}")
+        
+        if selected_runner['priority'] == 3:
+            print("💡 Consejo: Crea un 'test_runner.py' en la raíz para métricas más precisas")
+        
+        # Ejecutar las pruebas
+        success = self._run_command(
+            selected_runner["command"],
+            selected_runner["description"]
+        )
         
         return success
     

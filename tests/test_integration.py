@@ -52,7 +52,7 @@ class TestIntegracionCompleta(unittest.TestCase):
         """Limpieza después de cada prueba."""
         pass
     
-    @patch('database.connection.DatabaseConnection.get_connection')
+    @patch('database.connection.DatabaseConnection.obtener_conexion')
     def test_flujo_completo_crud_usuario(self, mock_db):
         """Prueba el flujo completo CRUD de un usuario."""
         # Mock de la base de datos
@@ -147,7 +147,7 @@ class TestIntegracionCompleta(unittest.TestCase):
             data = response.get_json()
             self.assertTrue(data['exito'])
     
-    @patch('database.connection.DatabaseConnection.get_connection')
+    @patch('database.connection.DatabaseConnection.obtener_conexion')
     def test_flujo_paginacion_usuarios(self, mock_db):
         """Prueba el flujo completo de paginación."""
         # Mock de la base de datos
@@ -240,7 +240,7 @@ class TestIntegracionCompleta(unittest.TestCase):
         data = response.get_json()
         self.assertFalse(data['exito'])
     
-    @patch('database.connection.DatabaseConnection.get_connection')
+    @patch('database.connection.DatabaseConnection.obtener_conexion')
     def test_integracion_base_datos_modelo_controlador(self, mock_db):
         """Prueba la integración entre base de datos, modelo y controlador."""
         # Mock de la conexión a la base de datos
@@ -250,7 +250,7 @@ class TestIntegracionCompleta(unittest.TestCase):
         mock_db.return_value = mock_conn
         
         # Instanciar componentes reales
-        db_connection = DatabaseConnection()
+        db = DatabaseConnection()
         user_model = UserModel()
         user_controller = UserController()
         
@@ -266,7 +266,7 @@ class TestIntegracionCompleta(unittest.TestCase):
         ]
         
         # Probar la cadena completa de integración
-        with patch.object(user_model, 'db_connection', db_connection):
+        with patch.object(user_model, 'db', db):
             with patch.object(user_controller, 'user_model', user_model):
                 # El controlador debería usar el modelo, que usa la BD
                 resultado, status_code = user_controller.obtener_todos()

@@ -67,7 +67,9 @@ class TestDatabaseConnection(unittest.TestCase):
     })
     def test_get_config_info(self):
         """Prueba obtención de información de configuración."""
-        config = self.db.get_config_info()
+        # Crear una nueva instancia para que tome las variables de entorno mockeadas
+        test_db = DatabaseConnection()
+        config = test_db.get_config_info()
         
         self.assertIsInstance(config, dict)
         self.assertIn('host', config)
@@ -77,9 +79,9 @@ class TestDatabaseConnection(unittest.TestCase):
         self.assertEqual(config['host'], 'localhost')
         self.assertEqual(config['database'], 'test_db')
         self.assertEqual(config['user'], 'test_user')
-        self.assertEqual(config['port'], 5432)
+        self.assertEqual(config['port'], '5432')  # Es string en el config
     
-    @patch('psycopg2.connect')
+    @patch('database.connection.psycopg2.connect')
     @patch.dict(os.environ, {
         'DB_HOST': 'localhost',
         'DB_NAME': 'test_db',
@@ -93,12 +95,13 @@ class TestDatabaseConnection(unittest.TestCase):
         mock_conn = MagicMock()
         mock_connect.return_value = mock_conn
         
-        conexion = self.db.get_connection()
+        # Usar el método correcto
+        conexion = self.db.obtener_conexion()
         
         self.assertIsNotNone(conexion)
         mock_connect.assert_called_once()
     
-    @patch('psycopg2.connect')
+    @patch('database.connection.psycopg2.connect')
     @patch.dict(os.environ, {
         'DB_HOST': 'localhost',
         'DB_NAME': 'test_db',
@@ -108,38 +111,41 @@ class TestDatabaseConnection(unittest.TestCase):
     })
     def test_get_connection_fallo(self, mock_connect):
         """Prueba fallo en la conexión a la base de datos."""
-        # Mock que simula error de conexión
-        mock_connect.side_effect = Exception("Error de conexión")
+        import psycopg2
+        # Mock que simula error de conexión con el tipo correcto
+        mock_connect.side_effect = psycopg2.Error("Error de conexión")
         
-        conexion = self.db.get_connection()
+        # Crear nueva instancia para usar env vars mockeadas
+        test_db = DatabaseConnection()
+        conexion = test_db.obtener_conexion()
         
         self.assertIsNone(conexion)
     
-    @patch('database.connection.DatabaseConnection.get_connection')
-    def test_verificar_tabla_existe_exitoso(self, mock_get_connection):
+    @patch('database.connection.DatabaseConnection.obtener_conexion')
+    def test_verificar_tabla_existe_exitoso(self, mock_obtener_conexion):
         """Prueba verificación exitosa de existencia de tabla."""
         # Mock de conexión y cursor
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = (1,)  # Tabla existe
-        mock_get_connection.return_value = mock_conn
+        mock_cursor.fetchone.side_effect = [(True,), (5,)]  # Tabla existe, 5 registros
+        mock_obtener_conexion.return_value = mock_conn
         
         resultado = self.db.verificar_tabla_existe()
         
         self.assertTrue(resultado)
-        mock_cursor.execute.assert_called_once()
+        self.assertEqual(mock_cursor.execute.call_count, 2)  # Dos queries
         mock_conn.close.assert_called_once()
     
-    @patch('database.connection.DatabaseConnection.get_connection')
-    def test_verificar_tabla_no_existe(self, mock_get_connection):
+    @patch('database.connection.DatabaseConnection.obtener_conexion')
+    def test_verificar_tabla_no_existe(self, mock_obtener_conexion):
         """Prueba verificación cuando la tabla no existe."""
         # Mock de conexión sin tabla
         mock_conn = MagicMock()
         mock_cursor = MagicMock()
         mock_conn.cursor.return_value = mock_cursor
-        mock_cursor.fetchone.return_value = None  # Tabla no existe
-        mock_get_connection.return_value = mock_conn
+        mock_cursor.fetchone.return_value = (False,)  # Tabla no existe
+        mock_obtener_conexion.return_value = mock_conn
         
         resultado = self.db.verificar_tabla_existe()
         
