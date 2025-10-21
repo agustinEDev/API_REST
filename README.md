@@ -47,11 +47,11 @@ Una API REST completa con arquitectura modular, cliente interactivo y mejores pr
 
 ### **Ventajas de esta Arquitectura**
 
-✅ **Separación clara**: Servidor y cliente independientes
-✅ **Mantenibilidad**: Código organizado y documentado
-✅ **Escalabilidad**: Fácil añadir nuevos endpoints y funciones
-✅ **Testeo**: Cliente robusto para pruebas completas
-✅ **Experiencia de usuario**: Interfaz intuitiva y segura
+- ✅ **Separación clara**: Servidor y cliente independientes
+- ✅ **Mantenibilidad**: Código organizado y documentado
+- ✅ **Escalabilidad**: Fácil añadir nuevos endpoints y funciones
+- ✅ **Testeo**: Cliente robusto para pruebas completas
+- ✅ **Experiencia de usuario**: Interfaz intuitiva y segura
 
 ## 🚀 Inicio Rápido
 
